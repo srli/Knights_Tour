@@ -33,9 +33,13 @@ class KnightsTour:
         """
         self.w = size[0]
         self.h = size[1]
+        self.initial_pos = (0, 0)
 
         self.rules = rules
+        self.reserved_positions = []
+
         self.closed_tour = False
+        self.closed_positions = []
 
         self.board = []
         self.generate_board()
@@ -43,15 +47,22 @@ class KnightsTour:
     def generate_board(self):
         """
         Creates a nested list to represent the game board
+        Each element is a two element tuple (x1, x2) where:
+        x1: what step of tour landed on this square
+        x2: square is reserved in rules/no
         """
         for i in range(self.h):
             self.board.append([0]*self.w)
+
+        for k in rules.keys():
+            self.reserved_positions.append(rules[k])
 
     def print_board(self):
         print "  "
         print "------"
         for elem in self.board:
             print elem
+            # print [x for (x,y) in elem]
         print "------"
         print "  "
 
@@ -91,7 +102,7 @@ class KnightsTour:
 
         for neighbor in neighbor_list:
             np_value = self.board[neighbor[0]][neighbor[1]]
-            if np_value == 0:
+            if (np_value == 0) and (neighbor not in self.reserved_positions):
                 empty_neighbours.append(neighbor)
 
         scores = []
@@ -135,7 +146,6 @@ class KnightsTour:
                 raise PathFound
         else:
             rule_location = self.rules.get(n+1, None)
-
             if rule_location is None:
                 sorted_neighbours = self.sort_lonely_neighbors(to_visit)
                 for neighbor in sorted_neighbours:
@@ -155,11 +165,13 @@ class KnightsTour:
 
     def find_path(self, n, path, start):
         try:
+            if self.closed_tour:
+                self.closed_positions = self.generate_legal_moves(self.initial_pos)
             self.tour(n, path, start)
         except PathFound:
             if GUI_ON:
                 pygame.init()
-                size = (480, 480)
+                size = (60*self.w, 60*self.h)
 
                 model = Model(self.w, self.h, path)
 
@@ -176,5 +188,7 @@ if __name__ == '__main__':
     #Define the size of grid. We are currently solving for an 8x8 grid
     kt = KnightsTour(size=(8, 8), rules=rules)
     # kt.closed_tour = True #uncomment if you want a closed tour
-    kt.find_path(1, [], (0,0))
+    kt.initial_pos = (0,0)
+
+    kt.find_path(1, [], kt.initial_pos)
     kt.print_board()

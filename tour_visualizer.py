@@ -4,8 +4,7 @@ import time
 import random
 
 class View(object):
-    """ Provides a view of the brick breaker model in a pygame
-        window """
+    """ Provides a view of the chessboard with specified model """
     def __init__(self, model, size):
         """ Initialize with the specified model """
         self.model = model
@@ -15,7 +14,6 @@ class View(object):
 
     def draw(self):
         """ Draw the game to the pygame window """
-        # draw all the bricks to the screen
         self.screen.fill(pygame.Color('white'))
 
         for j in self.model.chessboard:
@@ -29,8 +27,8 @@ class View(object):
         return c_pix
 
     def color_square(self, prev_square, square):
-        i = square[0]
-        j = square[1]
+        i = square[1]
+        j = square[0]
 
         r = self.model.chessboard[i][j]
 
@@ -38,8 +36,8 @@ class View(object):
         pygame.draw.rect(self.screen, pygame.Color('black'), r, 1)
 
         if prev_square != None:
-            i_p = prev_square[0]
-            j_p = prev_square[1]
+            i_p = prev_square[1]
+            j_p = prev_square[0]
             r_p = self.model.chessboard[i_p][j_p]
 
             c_pix_p = self.center_pixel(r_p)
@@ -54,13 +52,13 @@ class View(object):
 
 
     def animate_path(self):
-
         running = True
         while running:
             self.draw()
             self.color_square(None, self.model.path[0])
 
             i = 1
+            print "LENGTH PATH: ", len(self.model.path)
             while i < (len(self.model.path)):
                 for e in pygame.event.get():
                     if e.type == pygame.QUIT:
@@ -69,24 +67,29 @@ class View(object):
                         running = False
 
                 self.color_square(self.model.path[i-1], self.model.path[i])
+
+                if i == (len(self.model.path) - 2):
+                    self.color_square(self.model.path[i], self.model.path[i+1])
+
                 i += 1
                 time.sleep(0.25)
+            running = False
 
         j = raw_input("Press enter to end")
 
 class Model(object):
-    """ Represents the game state for brick breaker """
+    """ Represents the state of the chessboard"""
     def __init__(self, w, h, path):
         self.w = w
         self.h = h
         self.path = path
 
-        self.box_height = 480/self.h
+        self.box_height = 60
         self.chessboard = []
 
-        for i in range(self.h):
+        for i in range(self.w):
             row = []
-            for j in range(self.w):
+            for j in range(self.h):
                 r = pygame.Rect(i*self.box_height, j*self.box_height, self.box_height, self.box_height)
                 row.append(r)
             self.chessboard.append(row)
